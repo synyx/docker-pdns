@@ -30,12 +30,19 @@ RUN wget https://github.com/peterbourgon/runsvinit/releases/download/v2.0.0/runs
  && chown root:root /runsvinit \
  && rm runsvinit-linux-amd64.tgz
 
+RUN wget -O pdns_exporter \
+    https://github.com/wrouesnel/pdns_exporter/releases/download/v0.0.3/pdns_exporter.x86_64 \
+ && chmod +x pdns_exporter
+
 # Add default configuration
 COPY ./pdns /etc/pdns
 
 # Expose DNS service ports
 EXPOSE 53/udp
 EXPOSE 53/tcp
+
+# Expose PowerDNS prometheus metrics
+EXPOSE 9120/tcp
 
 # Add Runit service definitions
 COPY ./service /etc/service
