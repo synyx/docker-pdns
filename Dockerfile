@@ -22,7 +22,13 @@ RUN echo '@edge http://dl-cdn.alpinelinux.org/alpine/edge/main' >> /etc/apk/repo
             pdns-backend-mysql@edgecommunity \
             pdns-backend-pgsql@edgecommunity \
             pdns-backend-random@edgecommunity \
+            runit \
  && rm -rf /var/cache/apk/*
+
+RUN wget https://github.com/peterbourgon/runsvinit/releases/download/v2.0.0/runsvinit-linux-amd64.tgz \
+ && tar xzf runsvinit-linux-amd64.tgz \
+ && chown root:root /runsvinit \
+ && rm runsvinit-linux-amd64.tgz
 
 # Add default configuration
 COPY ./pdns /etc/pdns
@@ -30,6 +36,9 @@ COPY ./pdns /etc/pdns
 # Expose DNS service ports
 EXPOSE 53/udp
 EXPOSE 53/tcp
+
+# Add Runit service definitions
+COPY ./service /etc/service
 
 # Entrypoint to whole container
 COPY entrypoint.sh /entrypoint.sh
