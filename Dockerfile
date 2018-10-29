@@ -23,3 +23,14 @@ RUN echo '@edge http://dl-cdn.alpinelinux.org/alpine/edge/main' >> /etc/apk/repo
             pdns-backend-pgsql@edgecommunity \
             pdns-backend-random@edgecommunity \
  && rm -rf /var/cache/apk/*
+
+# Add default configuration
+COPY ./pdns /etc/pdns
+
+# Expose DNS service ports
+EXPOSE 53/udp
+EXPOSE 53/tcp
+
+# Entrypoint to whole container
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]
