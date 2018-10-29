@@ -1,6 +1,7 @@
 # Declare build stages
 stages:
   - build
+  - publish-latest
   - release
 
 before_script:
@@ -10,6 +11,16 @@ build:
   stage: build
   script:
     - docker build --no-cache --pull -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --build-arg GIT_COMMIT_ID=$CI_COMMIT_SHA .
+  tags:
+    - shell
+
+publish-latest:
+  stage: publish-latest
+  script:
+    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:latest
+  only:
+    - master
   tags:
     - shell
 
