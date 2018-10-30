@@ -1,6 +1,9 @@
 FROM alpine:3.8
 MAINTAINER Florian 'hase' Krupicka <hase@synyx.de>
 
+# PowerDNS package version
+ARG PDNS_PACKAGE_VERSION=4.1.4-r0
+
 # Allow passing Git commit id as a label
 ARG GIT_COMMIT_ID=0000000000000000000000000000000000000000
 
@@ -15,14 +18,14 @@ RUN echo '@edge http://dl-cdn.alpinelinux.org/alpine/edge/main' >> /etc/apk/repo
  && echo '@edgecommunity http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
  && apk update \
  && apk add boost-program_options@edge \
-            pdns@edgecommunity \
-            pdns-backend-bind@edgecommunity \
-            pdns-backend-lua@edgecommunity \
-            pdns-backend-mariadb@edgecommunity \
-            pdns-backend-mysql@edgecommunity \
-            pdns-backend-pgsql@edgecommunity \
-            pdns-backend-random@edgecommunity \
-            pdns-backend-sqlite3@edgecommunity \
+            pdns@edgecommunity=$PDNS_PACKAGE_VERSION \
+            pdns-backend-bind@edgecommunity=$PDNS_PACKAGE_VERSION \
+            pdns-backend-lua@edgecommunity=$PDNS_PACKAGE_VERSION \
+            pdns-backend-mariadb@edgecommunity=$PDNS_PACKAGE_VERSION \
+            pdns-backend-mysql@edgecommunity=$PDNS_PACKAGE_VERSION \
+            pdns-backend-pgsql@edgecommunity=$PDNS_PACKAGE_VERSION \
+            pdns-backend-random@edgecommunity=$PDNS_PACKAGE_VERSION \
+            pdns-backend-sqlite3@edgecommunity=$PDNS_PACKAGE_VERSION \
             runit \
  && rm -rf /var/cache/apk/*
 
