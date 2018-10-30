@@ -1,3 +1,30 @@
 #!/bin/sh
 
-exec /usr/sbin/pdns_server --guardian=no --daemon=no --disable-syslog --write-pid=no $@
+PDNS_SETGID="${PDNS_SETGID:-pdns}"
+PDNS_SETUID="${PDNS_SETUID:-pdns}"
+
+# Define at least the random backend if none is specified
+if ! grep -qrE -e '^launch\+?=.+' /etc/pdns/ || [ -z $PDNS_LAUNCH ]; then
+  echo "No backends configured, falling back to 'random'."
+  export PDNS_LAUNCH=random
+  export PDNS_RANDOM_HOSTNAME="${PDNS_RANDOM_HOSTNAME:-random.example.com}"
+fi
+
+# Extract PDNS_ environment variables to their corresponding config variable
+rm -f /etc/pdns/pdns.d/00environment.conf
+touch /etc/pdns/pdns.d/00environment.conf
+
+for pdnsvar in $(printenv | awk -F '=' '/^PDNS_/ { print $1 }' | sort); do
+  pdnsval=$(eval "echo \${${pdnsvar}}")
+  printf "%s=%s\n" \
+    $(echo $pdnsvar | sed -e 's/^PDNS_//' | tr '[:upper:]_' '[:lower:]-') \
+    $pdnsval >> /etc/pdns/pdns.d/00environment.conf
+done
+
+exec /usr/sbin/pdns_server \
+  --daemon=no \
+  --disable-syslog \
+  --guardian=no \
+  --setgid="${PDNS_SETGID}" \
+  --setuid="${PDNS_SETUID}" \
+  --write-pid=no $@
