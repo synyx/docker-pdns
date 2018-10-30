@@ -12,8 +12,8 @@ backends out of the box:
 * [SQLite3][pdns-sqlite]
 * [Random][pdns-random] (for testing)
 
-It also provides [Prometheus][prometheus] metrics for easily monitoring
-the deployment. This was done to provide an out-of-the-box container to
+It also provides [Prometheus][prometheus] metrics for simple monitoring
+of the server. This was done to provide an out-of-the-box container to
 use in [Kubernetes][kubernetes].
 
 ## Quickstart
