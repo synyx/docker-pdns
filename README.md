@@ -18,7 +18,7 @@ use in [Kubernetes][kubernetes].
 
 ## Quickstart
 
-The image will run with the [Random][pdns-random] backend, providing
+The image will run with the [random][pdns-random] backend, providing
 random DNS records for `random.example.com` and [Prometheus][prometheus]
 metrics on port `9120`. Run with:
 
@@ -48,7 +48,8 @@ docker run -d --rm -p 1053:53/udp -p 1053:53 -p 9120:9120 \
   -e PDNS_GMYSQL_HOST=mysql.example.com \
   -e PDNS_GMYSQL_DBNAME=pdns \
   -e PDNS_GMYSQL_USER=pdns \
-  -e PDNS_GMYSQL_PASSWORD=secret
+  -e PDNS_GMYSQL_PASSWORD=secret \
+  synyx/pdns
 ```
 
 The second option is, to simply mount a PowerDNS configuration file to
