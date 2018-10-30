@@ -22,6 +22,7 @@ RUN echo '@edge http://dl-cdn.alpinelinux.org/alpine/edge/main' >> /etc/apk/repo
             pdns-backend-mysql@edgecommunity \
             pdns-backend-pgsql@edgecommunity \
             pdns-backend-random@edgecommunity \
+            pdns-backend-sqlite3@edgecommunity \
             runit \
  && rm -rf /var/cache/apk/*
 
