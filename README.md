@@ -61,6 +61,14 @@ docker run -d --rm -p 1053:53/udp -p 1053:53 -p 9120:9120 \
   -v ./myconfig.conf:/etc/pdns/pdns.d/myconfig.conf
 ```
 
+The Prometheus exporter exposes only two environment variables for
+configuration right now:
+
+* `EXPORTER_LISTEN_ADDRESS` to set a Golang compatible bind address
+  specification (e.g. `EXPORTER_LISTEN_ADDRESS=127.0.0.1:1234`).
+* `EXPORTER_TELEMETRY_PATH` to set the HTTP path, metrics are exposed
+  at (e.g. `EXPORTER_TELEMETRY_PATH=/newmetrics`).
+
 ## Design & Caveats
 
 While the Docker design philosophy is *run a single process*, we wanted
