@@ -65,9 +65,11 @@ The Prometheus exporter exposes only two environment variables for
 configuration right now:
 
 * `EXPORTER_LISTEN_ADDRESS` to set a Golang compatible bind address
-  specification (e.g. `EXPORTER_LISTEN_ADDRESS=127.0.0.1:1234`).
+  specification (e.g. `EXPORTER_LISTEN_ADDRESS=127.0.0.1:1234`). The
+  default is simply `:9120`, listening on all interfaces on port 9120.
 * `EXPORTER_TELEMETRY_PATH` to set the HTTP path, metrics are exposed
-  at (e.g. `EXPORTER_TELEMETRY_PATH=/newmetrics`).
+  at (e.g. `EXPORTER_TELEMETRY_PATH=/newmetrics`). The default is to
+  expose at `/metrics`.
 
 ## Design & Caveats
 
