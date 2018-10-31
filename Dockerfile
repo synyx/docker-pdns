@@ -5,7 +5,7 @@ MAINTAINER Florian 'hase' Krupicka <hase@synyx.de>
 ARG PDNS_PACKAGE_VERSION=4.1.4-r0
 
 LABEL org.label-schema.schema-version="1.0" \
-      org.label-schema.name="pdns-server" \
+      org.label-schema.name="pdns" \
       org.label-schema.description="PowerDNS authorative server with some <3-features" \
       org.label-schema.vendor="synyx GmbH & Co. KG"
 
