@@ -4,13 +4,9 @@ MAINTAINER Florian 'hase' Krupicka <hase@synyx.de>
 # PowerDNS package version
 ARG PDNS_PACKAGE_VERSION=4.1.4-r0
 
-# Allow passing Git commit id as a label
-ARG GIT_COMMIT_ID=0000000000000000000000000000000000000000
-
 LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.name="pdns-server" \
       org.label-schema.description="PowerDNS authorative server with some <3-features" \
-      org.label-schema.vcs-ref=$GIT_COMMIT_ID \
       org.label-schema.vendor="synyx GmbH & Co. KG"
 
 # Install PowerDNS core packages
