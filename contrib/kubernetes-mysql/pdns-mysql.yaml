@@ -1,0 +1,89 @@
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pdns-mysql-storage
+  labels:
+    app: pdns-mysql
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeMode: Filesystem
+  resources:
+    requests:
+      storage: 1Gi
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: pdns-mysql
+  labels:
+    app: pdns-mysql
+type: Opaque
+data:
+  password: cGRucw==
+  username: cGRucw==
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdns-mysql
+spec:
+  selector:
+    matchLabels:
+      app: pdns-mysql
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pdns-mysql
+    spec:
+      containers:
+      - name: pdns-mysql
+        image: mariadb:10.3.10
+        env:
+        - name: MYSQL_RANDOM_ROOT_PASSWORD
+          value: "yes"
+        - name: MYSQL_DATABASE
+          value: pdns
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: pdns-mysql
+              key: username
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pdns-mysql
+              key: password
+        resources:
+          requests:
+            cpu: 50m
+            memory: 150Mi
+          limits:
+            cpu: 75m
+            memory: 200Mi
+        volumeMounts:
+        - mountPath: /var/lib/mysql
+          name: var-lib-mysql
+        ports:
+        - containerPort: 3306
+          protocol: TCP
+          name: mysql
+      volumes:
+      - name: var-lib-mysql
+        persistentVolumeClaim:
+          claimName: pdns-mysql-storage
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: pdns-mysql
+spec:
+  selector:
+    app: pdns-mysql
+  ports:
+  - name: mysql
+    port: 3306
+    targetPort: 3306

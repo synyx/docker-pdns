@@ -1,0 +1,87 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pdns
+  labels:
+    app: pdns
+spec:
+  selector:
+    matchLabels:
+      app: pdns
+  template:
+    metadata:
+      labels:
+        app: pdns
+    spec:
+      containers:
+      - name: pdns
+        image: synyx/pdns:latest
+        env:
+        - name: PDNS_LAUNCH
+          value: gmysql
+        - name: PDNS_GMYSQL_HOST
+          value: pdns-mysql
+        - name: PDNS_GMYSQL_DBNAME
+          value: pdns
+        - name: PDNS_GMYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: pdns-mysql
+              key: username
+        - name: PDNS_GMYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: pdns-mysql
+              key: password
+        readinessProbe:
+          exec:
+            command:
+            - pdns_control
+            - rping
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        livenessProbe:
+          exec:
+            command:
+            - pdns_control
+            - rping
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        resources:
+          requests:
+            cpu: 20m
+            memory: 20Mi
+          limits:
+            cpu: 40m
+            memory: 40Mi
+        ports:
+        - containerPort: 53
+          protocol: UDP
+          name: dns
+        - containerPort: 53
+          protocol: TCP
+          name: dns-tcp
+        - containerPort: 9120
+          protocol: TCP
+          name: metrics
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: pdns
+  labels:
+    app: pdns
+spec:
+  selector:
+    app: pdns
+  ports:
+    - port: 53
+      protocol: UDP
+      name: dns
+      nodePort: 31053
+    - port: 53
+      protocol: TCP
+      name: dns-tcp
+      nodePort: 31053
+  type: NodePort
