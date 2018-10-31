@@ -14,11 +14,13 @@ fi
 rm -f /etc/pdns/pdns.d/00environment.conf
 touch /etc/pdns/pdns.d/00environment.conf
 
-for pdnsvar in $(printenv | awk -F '=' '/^PDNS_/ { print $1 }' | sort); do
-  pdnsval=$(eval "echo \${${pdnsvar}}")
-  printf "%s=%s\n" \
-    $(echo $pdnsvar | sed -e 's/^PDNS_//' | tr '[:upper:]_' '[:lower:]-') \
-    $pdnsval >> /etc/pdns/pdns.d/00environment.conf
+for pdns_env_var in $(printenv | awk -F '=' '/^PDNS_/ { print $1 }' | sort); do
+  pdnsvar=$(echo $pdns_env_var | sed -e 's/^PDNS_//' | tr '[:upper:]_' '[:lower:]-')
+  if ! grep -qE -e "^${pdnsvar}$" /etc/pdns/allowed.settings; then
+    continue
+  fi
+  pdnsval=$(eval "echo \${${pdns_env_var}}")
+  printf "%s=%s\n" $pdnsvar $pdnsval >> /etc/pdns/pdns.d/00environment.conf
 done
 
 exec /usr/sbin/pdns_server \
