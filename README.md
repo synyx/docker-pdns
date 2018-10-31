@@ -1,6 +1,8 @@
 PowerDNS with various backends
 ==============================
 
+[![](https://images.microbadger.com/badges/image/synyx/pdns.svg)](https://microbadger.com/images/synyx/pdns "Get your own image badge on microbadger.com")
+
 This image provides a reasonably small [PowerDNS][pdns] setup, based on the [Alpine docker images][alpine-docker]. It supports the following backends out of the box:
 
 * [Bind zonefiles][pdns-bind]
