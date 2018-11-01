@@ -2,7 +2,7 @@ FROM alpine:3.8
 MAINTAINER Florian 'hase' Krupicka <hase@synyx.de>
 
 # PowerDNS package version
-ARG PDNS_PACKAGE_VERSION=4.1.4-r0
+ARG PDNS_PACKAGE_VERSION=4.1.3-r0
 
 LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.name="pdns" \
@@ -10,18 +10,15 @@ LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.vendor="synyx GmbH & Co. KG"
 
 # Install PowerDNS core packages
-RUN echo '@edge http://dl-cdn.alpinelinux.org/alpine/edge/main' >> /etc/apk/repositories \
- && echo '@edgecommunity http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories \
- && apk update \
- && apk add boost-program_options@edge \
-            pdns@edgecommunity=$PDNS_PACKAGE_VERSION \
-            pdns-backend-bind@edgecommunity=$PDNS_PACKAGE_VERSION \
-            pdns-backend-lua@edgecommunity=$PDNS_PACKAGE_VERSION \
-            pdns-backend-mariadb@edgecommunity=$PDNS_PACKAGE_VERSION \
-            pdns-backend-mysql@edgecommunity=$PDNS_PACKAGE_VERSION \
-            pdns-backend-pgsql@edgecommunity=$PDNS_PACKAGE_VERSION \
-            pdns-backend-random@edgecommunity=$PDNS_PACKAGE_VERSION \
-            pdns-backend-sqlite3@edgecommunity=$PDNS_PACKAGE_VERSION \
+RUN apk update \
+ && apk add pdns=$PDNS_PACKAGE_VERSION \
+            pdns-backend-bind=$PDNS_PACKAGE_VERSION \
+            pdns-backend-lua=$PDNS_PACKAGE_VERSION \
+            pdns-backend-mariadb=$PDNS_PACKAGE_VERSION \
+            pdns-backend-mysql=$PDNS_PACKAGE_VERSION \
+            pdns-backend-pgsql=$PDNS_PACKAGE_VERSION \
+            pdns-backend-random=$PDNS_PACKAGE_VERSION \
+            pdns-backend-sqlite3=$PDNS_PACKAGE_VERSION \
             runit \
  && rm -rf /var/cache/apk/*
 
