@@ -22,6 +22,15 @@ for pdns_env_var in $(printenv | awk -F '=' '/^PDNS_/ { print $1 }' | sort); do
   printf "%s=%s\n" $pdnsvar $pdnsval >> /etc/pdns/pdns.d/00environment.conf
 done
 
+if [ -n $PDNS_DEBUG_ENV ]; then
+  echo "=== PDNS_DEBUG_ENV enabled: environment:" >&2
+  printenv | sort >&2
+  if [ -f /etc/pdns/pdns.d/00environment.conf ]; then
+    echo "=== PDNS_DEBUG_ENV enabled: /etc/pdns/pdns.d/00environment.conf" >&2
+    cat /etc/pdns/pdns.d/00environment.conf >&2
+  fi
+fi
+
 exec /usr/sbin/pdns_server \
   --daemon=no \
   --disable-syslog \
