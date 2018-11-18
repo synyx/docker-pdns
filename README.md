@@ -44,7 +44,7 @@ docker run -d --rm -p 1053:53/udp -p 1053:53 -p 9120:9120 \
   synyx/pdns
 ```
 
-If you want to debug the configuration that is done via environment variables, you can set the variable `PDNS_DEBUG_ENV=true` and the startup scripts will dump the environment and generated configuration to `stderr`. **CAUTION**: This can expose credentials in the logout put and should therefore not be used on production systems.
+If you want to debug the configuration that is done via environment variables, you can set the variable `PDNS_DEBUG_ENV=true` and the startup scripts will dump the environment and generated configuration to `stderr`. **CAUTION**: This can expose credentials in the log output and should therefore not be used on production systems.
 
 The second option is, to simply mount a PowerDNS configuration file to `/etc/pdns/pdns.conf` or `/etc/pdns/pdns.d/myconfig.conf`. The default configuration will pick up all config files in `/etc/pdns/pdns.d`:
 
