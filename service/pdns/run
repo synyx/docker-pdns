@@ -12,7 +12,6 @@ fi
 
 # Extract PDNS_ environment variables to their corresponding config variable
 rm -f /etc/pdns/pdns.d/00environment.conf
-touch /etc/pdns/pdns.d/00environment.conf
 
 for pdns_env_var in $(printenv | awk -F '=' '/^PDNS_/ { print $1 }' | sort); do
   pdnsvar=$(echo $pdns_env_var | sed -e 's/^PDNS_//' | tr '[:upper:]_' '[:lower:]-')
