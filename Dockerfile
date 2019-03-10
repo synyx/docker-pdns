@@ -1,8 +1,8 @@
-FROM alpine:3.8
+FROM alpine:3.9
 MAINTAINER Florian 'hase' Krupicka <hase@synyx.de>
 
 # PowerDNS package version
-ARG PDNS_PACKAGE_VERSION=4.1.3-r0
+ARG PDNS_PACKAGE_VERSION=4.1.5-r1
 
 LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.name="pdns" \
