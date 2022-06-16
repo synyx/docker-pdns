@@ -3,36 +3,68 @@ PowerDNS with various backends
 
 [![](https://images.microbadger.com/badges/image/synyx/pdns.svg)](https://microbadger.com/images/synyx/pdns "Get your own image badge on microbadger.com")
 
-This image provides a reasonably small [PowerDNS][pdns] setup, based on the [Alpine docker images][alpine-docker]. It supports the following backends out of the box:
+This image provides a reasonably small [PowerDNS][pdns] setup, based on the
+[Alpine docker images][alpine-docker]. It supports the following backends out
+of the box:
 
 * [Bind zonefiles][pdns-bind]
-* [LUA scripting][pdns-lua]
+* [SQLite3][pdns-sqlite]
 * [MySQL][pdns-mysql]
 * [PostgreSQL][pdns-pgsql]
-* [SQLite3][pdns-sqlite]
-* [Random][pdns-random] (for testing)
+* [LUA scripting][pdns-lua2]
 
-It also provides [Prometheus][prometheus] metrics for simple monitoring of the server. This was done to provide an out-of-the-box container to use in [Kubernetes][kubernetes].
+Via the builtin [webserver][pdns-webserver] it also provides
+[Prometheus][prometheus] metrics for easy monitoring of the server.
 
 ## Quickstart
 
-The image will run with the [random][pdns-random] backend, providing random DNS records for `random.example.com` and [Prometheus][prometheus] metrics on port `9120`. Run with:
+The container image needs at least one backend configured to run. An example
+based on the [BIND][pdns-bind] backend  with a minimal `example.com` zone can
+be easily started from this repository:
 
-```docker run -d --rm -p 1053:53/udp -p 1053:53 -p 9120:9120 synyx/pdns```
+```
+$ docker run --rm \
+    -v $(pwd)/example:/etc/pdns/ \
+    -p 1053:53/udp -p 1053:53 -p 8081:8081 \
+    synyx/pdns
+```
 
-PowerDNS should be answering queries shortly after:
+You should then be able to run DNS queries against this zone
 
-```dig -p 1053 random.example.com +short @localhost```
+```
+$ dig -p 1053 www.example.com @localhost
 
-The Prometheus metrics are also available:
+; <<>> DiG 9.10.6 <<>> -p 1053 www.example.com @localhost
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 62192
+;; flags: qr aa rd; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+;; WARNING: recursion requested but not available
 
-```curl localhost:9120/metrics```
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;www.example.com.		IN	A
+
+;; ANSWER SECTION:
+www.example.com.	86400	IN	CNAME	example.com.
+example.com.		86400	IN	A	127.0.0.1
+
+;; Query time: 1 msec
+;; SERVER: ::1#1053(::1)
+;; WHEN: Thu Jun 16 15:01:59 CEST 2022
+;; MSG SIZE  rcvd: 74
+```
 
 ## Configuration
 
 Configuration for PowerDNS can be done in two ways.
 
-The first & most simple is via environment variables. All possible [settings][pdns-config] for the PowerDNS server can be set by making the setting name all uppercase, replacing `-` with `_` and prefixing it with `PDNS_`. For example, to configure [MySQL backend][pdns-mysql], you can do the following:
+The first & most simple is via environment variables. All possible
+[settings][pdns-config] for the PowerDNS server can be set by making the
+setting name all uppercase, replacing `-` with `_` and prefixing it with
+`PDNS_`. For example, to configure [MySQL backend][pdns-mysql], you can do the
+following:
 
 ```
 docker run -d --rm -p 1053:53/udp -p 1053:53 -p 9120:9120 \
@@ -44,43 +76,30 @@ docker run -d --rm -p 1053:53/udp -p 1053:53 -p 9120:9120 \
   synyx/pdns
 ```
 
-If you want to debug the configuration that is done via environment variables, you can set the variable `PDNS_DEBUG_ENV=true` and the startup scripts will dump the environment and generated configuration to `stderr`. **CAUTION**: This can expose credentials in the log output and should therefore not be used on production systems.
-
-The second option is, to simply mount a PowerDNS configuration file to `/etc/pdns/pdns.conf` or `/etc/pdns/pdns.d/myconfig.conf`. The default configuration will pick up all config files in `/etc/pdns/pdns.d`:
+The second option is, to simply mount a PowerDNS configuration file to
+`/etc/pdns/pdns.conf`:
 
 ```
-docker run -d --rm -p 1053:53/udp -p 1053:53 -p 9120:9120 \
-  -v ./myconfig.conf:/etc/pdns/pdns.d/myconfig.conf
+docker run -d --rm -p 1053:53/udp -p 1053:53 \
+  -v ./pdns.conf:/etc/pdns/pdns.conf
 ```
 
-The Prometheus exporter exposes only two environment variables for configuration right now:
-
-* `EXPORTER_LISTEN_ADDRESS` to set a Golang compatible bind address specification (e.g. `EXPORTER_LISTEN_ADDRESS=127.0.0.1:1234`). The default is simply `:9120`, listening on all interfaces on port 9120.
-* `EXPORTER_TELEMETRY_PATH` to set the HTTP path, metrics are exposed at (e.g. `EXPORTER_TELEMETRY_PATH=/newmetrics`). The default is to expose at `/metrics`.
-
-## Design & Caveats
-
-While the Docker design philosophy is *run a single process*, we wanted to have out-of-the-box metrics support. Since PowerDNS exposes the internal metrics mainly via an UNIX socket, the decision was made to use [runit][runit] to run PowerDNS and the Prometheus exporter side by side.
-
-The caveat is, that now the container won't simply exit or crash when PowerDNS is misconfigured. Since this container is targeting Kubernetes, this issue can be remedied by simply applying an in-container health check by executing `pdns_control rping` periodically.
+Both approaches can be combined. The environment variable based config
+directory will automatically be added to the configuration with the
+`--include-dir` parameter.
 
 ## Thanks
 
 * Open-Xchange for [PowerDNS][pdns]
-* Peter Bourgon for the [runit wrapper][runsvinit]
-* Will Rouesnel for the [PowerDNS Prometheus exporter][pdns-exporter]
 
 [alpine-docker]: https://hub.docker.com/r/library/alpine/
 [kubernetes]: https://kubernetes.io
 [pdns]: https://www.powerdns.com
 [pdns-config]: https://doc.powerdns.com/md/authoritative/settings/
-[pdns-bind]: https://doc.powerdns.com/md/authoritative/backend-bind/
-[pdns-exporter]: https://github.com/wrouesnel/pdns_exporter
-[pdns-lua]: https://doc.powerdns.com/md/authoritative/backend-lua/
-[pdns-mysql]: https://doc.powerdns.com/md/authoritative/backend-generic-mysql/
-[pdns-pgsql]: https://doc.powerdns.com/md/authoritative/backend-generic-pgsql/
-[pdns-sqlite]: https://doc.powerdns.com/md/authoritative/backend-generic-sqlite/
-[pdns-random]: https://doc.powerdns.com/authoritative/backends/random.html
+[pdns-bind]: https://doc.powerdns.com/authoritative/backends/bind.html
+[pdns-lua2]: https://doc.powerdns.com/authoritative/backends/lua2.html
+[pdns-mysql]: https://doc.powerdns.com/authoritative/backends/generic-mysql.html
+[pdns-pgsql]: https://doc.powerdns.com/authoritative/backends/generic-postgresql.html
+[pdns-sqlite]: https://doc.powerdns.com/authoritative/backends/generic-sqlite3.html
+[pdns-webserver]: https://doc.powerdns.com/authoritative/http-api/index.html
 [prometheus]: https://prometheus.io
-[runit]: http://smarden.org/runit/
-[runsvinit]: https://github.com/peterbourgon/runsvinit

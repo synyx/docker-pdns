@@ -1,49 +1,47 @@
-FROM alpine:3.12
-MAINTAINER Florian 'hase' Krupicka <hase@synyx.de>
+FROM alpine:3.16 AS build-base
 
 # PowerDNS package version
-ARG PDNS_PACKAGE_VERSION=4.2.2-r0
+ARG PDNS_PACKAGE_VERSION=4.6.2-r1
 
-LABEL org.label-schema.schema-version="1.0" \
-      org.label-schema.name="pdns" \
-      org.label-schema.description="PowerDNS authorative server with some <3-features" \
-      org.label-schema.vendor="synyx GmbH & Co. KG"
-
-# Install PowerDNS core packages
+# Install PowerDNS core packages and the tini init system.
 RUN apk update \
  && apk add pdns=$PDNS_PACKAGE_VERSION \
+            pdns-tools=$PDNS_PACKAGE_VERSION \
             pdns-backend-bind=$PDNS_PACKAGE_VERSION \
-            pdns-backend-lua=$PDNS_PACKAGE_VERSION \
+            pdns-backend-lua2=$PDNS_PACKAGE_VERSION \
             pdns-backend-mariadb=$PDNS_PACKAGE_VERSION \
             pdns-backend-mysql=$PDNS_PACKAGE_VERSION \
             pdns-backend-pgsql=$PDNS_PACKAGE_VERSION \
-            pdns-backend-random=$PDNS_PACKAGE_VERSION \
             pdns-backend-sqlite3=$PDNS_PACKAGE_VERSION \
-            runit \
+            tini \
  && rm -rf /var/cache/apk/*
 
-RUN wget https://github.com/peterbourgon/runsvinit/releases/download/v2.0.0/runsvinit-linux-amd64.tgz \
- && tar xzf runsvinit-linux-amd64.tgz \
- && chown root:root /runsvinit \
- && rm runsvinit-linux-amd64.tgz
+FROM build-base AS build-doc
 
-RUN wget -O pdns_exporter \
-    https://github.com/wrouesnel/pdns_exporter/releases/download/v0.0.3/pdns_exporter.x86_64 \
- && chmod +x pdns_exporter
+# We add the doc and manpages, so we can extract schema files for the final
+# image.
+RUN apk update \
+ && apk add pdns-doc=$PDNS_PACKAGE_VERSION \
+ && rm -rf /var/cache/apk/*
 
-# Add default configuration
-COPY ./pdns /etc/pdns
+FROM build-base
+
+# Fetch the SQL schemas from the build-doc stage
+COPY --from=build-doc /usr/share/doc/pdns/schema.mysql.sql /usr/share/doc/pdns/
+COPY --from=build-doc /usr/share/doc/pdns/schema.pgsql.sql /usr/share/doc/pdns/
+COPY --from=build-doc /usr/share/doc/pdns/schema.sqlite3.sql /usr/share/doc/pdns/
 
 # Expose DNS service ports
 EXPOSE 53/udp
 EXPOSE 53/tcp
 
-# Expose PowerDNS prometheus metrics
-EXPOSE 9120/tcp
-
-# Add Runit service definitions
-COPY ./service /etc/service
-
 # Entrypoint to whole container
 COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT [ "/entrypoint.sh" ]
+
+ENTRYPOINT [ "/sbin/tini", "--", "/entrypoint.sh" ]
+
+LABEL org.opencontainers.image.authors="Florian 'hase' Krupicka <krupicka@synyx.de>" \
+      org.opencontainers.image.url="https://github.com/synyx/docker-pdns" \
+      org.opencontainers.image.vendor="synyx GmbH & Co. KG" \
+      org.opencontainers.image.title="PowerDNS authorative server" \
+      org.opencontainers.image.description="A PowerDNS authorative server with support of configuration via environment"
